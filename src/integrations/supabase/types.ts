@@ -14,7 +14,152 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      govt_jobs: {
+        Row: {
+          apply_url: string
+          category: string
+          created_at: string
+          id: string
+          is_active: boolean
+          is_featured: boolean
+          last_date: string
+          level: string
+          location: string
+          organization: string
+          posted_date: string
+          qualification: string
+          salary: string
+          source_name: string
+          source_url: string
+          state: string
+          tags: string[]
+          title: string
+          updated_at: string
+          vacancies: number
+        }
+        Insert: {
+          apply_url: string
+          category: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_featured?: boolean
+          last_date: string
+          level: string
+          location: string
+          organization: string
+          posted_date: string
+          qualification: string
+          salary: string
+          source_name: string
+          source_url: string
+          state: string
+          tags?: string[]
+          title: string
+          updated_at?: string
+          vacancies?: number
+        }
+        Update: {
+          apply_url?: string
+          category?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_featured?: boolean
+          last_date?: string
+          level?: string
+          location?: string
+          organization?: string
+          posted_date?: string
+          qualification?: string
+          salary?: string
+          source_name?: string
+          source_url?: string
+          state?: string
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          vacancies?: number
+        }
+        Relationships: []
+      }
+      job_sources: {
+        Row: {
+          created_at: string
+          id: string
+          last_checked_at: string | null
+          name: string
+          scope: string
+          short_name: string
+          state: string | null
+          status: string
+          updated_at: string
+          website_url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_checked_at?: string | null
+          name: string
+          scope: string
+          short_name: string
+          state?: string | null
+          status?: string
+          updated_at?: string
+          website_url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_checked_at?: string | null
+          name?: string
+          scope?: string
+          short_name?: string
+          state?: string | null
+          status?: string
+          updated_at?: string
+          website_url?: string
+        }
+        Relationships: []
+      }
+      job_sync_runs: {
+        Row: {
+          completed_at: string | null
+          id: string
+          jobs_found: number
+          message: string | null
+          source_id: string
+          started_at: string
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          id?: string
+          jobs_found?: number
+          message?: string | null
+          source_id: string
+          started_at?: string
+          status: string
+        }
+        Update: {
+          completed_at?: string | null
+          id?: string
+          jobs_found?: number
+          message?: string | null
+          source_id?: string
+          started_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_sync_runs_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "job_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
