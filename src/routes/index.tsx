@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowUpRight,
   Bell,
@@ -19,6 +19,7 @@ import {
   Sparkles,
   UsersRound,
   X,
+  UserRound,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -59,6 +60,11 @@ function HomePage() {
   const [category, setCategory] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    void supabase.auth.getUser().then(({ data }) => setUserEmail(data.user?.email ?? null));
+  }, []);
 
   const filteredJobs = useMemo(() => {
     const normalized = query.toLowerCase().trim();
@@ -101,9 +107,7 @@ function HomePage() {
             <a className="transition-colors hover:text-foreground" href="#how-it-works">How it works</a>
           </div>
           <div className="hidden items-center gap-3 sm:flex">
-            <Button variant="outline" size="sm" className="gap-2">
-              <Bell className="h-4 w-4" /> Job alerts
-            </Button>
+            {userEmail ? <Button variant="outline" size="sm" className="gap-2" asChild><Link to="/applications"><UserRound className="h-4 w-4" /> My applications</Link></Button> : <Button variant="outline" size="sm" className="gap-2" asChild><Link to="/auth"><UserRound className="h-4 w-4" /> Sign in</Link></Button>}
             <Button size="sm" asChild><a href="#jobs">Find a job <ArrowUpRight className="h-4 w-4" /></a></Button>
           </div>
           <Button variant="ghost" size="icon" className="sm:hidden" onClick={() => setMobileNav((open) => !open)} aria-label="Open menu">
@@ -150,7 +154,7 @@ function HomePage() {
         <div className="mt-8 flex flex-col gap-3 lg:flex-row"><div className="relative flex-1"><Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by title, organization or keyword" className="pl-10" /></div><Select value={level} onValueChange={setLevel}><SelectTrigger className="w-full lg:w-[180px]"><SelectValue placeholder="All job types" /></SelectTrigger><SelectContent><SelectItem value="all">All job types</SelectItem><SelectItem value="Central">Central jobs</SelectItem><SelectItem value="State">State jobs</SelectItem></SelectContent></Select><Select value={state} onValueChange={setState}><SelectTrigger className="w-full lg:w-[180px]"><SelectValue placeholder="All locations" /></SelectTrigger><SelectContent><SelectItem value="all">All locations</SelectItem>{states.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent></Select></div>
         {showFilters && <div className="mt-3 flex flex-col gap-3 rounded-xl border border-border bg-secondary/35 p-4 sm:flex-row sm:items-center"><span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground"><Filter className="h-3.5 w-3.5" /> Refine by category</span><Select value={category} onValueChange={setCategory}><SelectTrigger className="w-full bg-background sm:w-[220px]"><SelectValue placeholder="All categories" /></SelectTrigger><SelectContent><SelectItem value="all">All categories</SelectItem>{categories.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent></Select>{activeFilterCount > 0 && <Button variant="ghost" size="sm" onClick={clearFilters}>Clear all</Button>}</div>}
         <div className="mt-8 grid gap-4 lg:grid-cols-2">{filteredJobs.map((job) => <JobCard key={job.id} job={job} />)}</div>
-        {filteredJobs.length === 0 && <div className="border border-dashed border-border py-16 text-center"><Search className="mx-auto h-8 w-8 text-muted-foreground" /><h3 className="mt-4 font-display text-xl font-semibold">No jobs match your search</h3><p className="mt-2 text-sm text-muted-foreground">Try a different keyword or clear your filters.</p><Button variant="outline" className="mt-5" onClick={clearFilters}>Clear filters</Button></div>}
+         {filteredJobs.length === 0 && <div className="border border-dashed border-border py-16 text-center"><Search className="mx-auto h-8 w-8 text-muted-foreground" /><h3 className="mt-4 font-display text-xl font-semibold">No jobs match your search</h3><p className="mt-2 text-sm text-muted-foreground">Try a different keyword or clear your filters.</p><Button variant="outline" className="mt-5" onClick={clearFilters}>Clear filters</Button></div>}
         <div className="mt-10 flex justify-center"><Button variant="outline" onClick={clearFilters}>View all current openings <ArrowUpRight className="h-4 w-4" /></Button></div>
       </section>
 
@@ -173,7 +177,22 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
 
 function JobCard({ job }: { job: Job }) {
   const daysLeft = Math.max(0, Math.ceil((new Date(`${job.last_date}T23:59:59`).getTime() - Date.now()) / 86400000));
-  return <article className="group border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-[0_12px_35px_-24px_hsl(var(--foreground)/0.45)] sm:p-6"><div className="flex items-start justify-between gap-4"><div className="flex items-start gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-primary"><Landmark className="h-5 w-5" /></span><div><div className="mb-2 flex flex-wrap items-center gap-2"><Badge variant={job.level === "Central" ? "default" : "secondary"}>{job.level}</Badge>{job.is_featured && <Badge variant="outline">Featured</Badge>}</div><h3 className="font-display text-lg font-bold leading-snug tracking-[-0.02em]">{job.title}</h3><p className="mt-1 text-sm text-muted-foreground">{job.organization}</p></div></div><span className="hidden rounded-md bg-accent/60 px-2 py-1 text-[11px] font-semibold text-accent-foreground sm:block">{job.source_name} verified</span></div><div className="mt-5 grid grid-cols-2 gap-3 border-y border-border py-4 text-xs sm:grid-cols-4"><Detail icon={<MapPin />} label="Location" value={job.location} /><Detail icon={<GraduationCap />} label="Qualification" value={job.qualification} /><Detail icon={<UsersRound />} label="Vacancies" value={job.vacancies.toLocaleString("en-IN")} /><Detail icon={<CalendarDays />} label="Last date" value={new Date(`${job.last_date}T12:00:00`).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })} /></div><div className="flex flex-col gap-4 pt-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs text-muted-foreground">Pay scale</p><p className="mt-1 text-sm font-semibold">{job.salary}</p><p className={`mt-2 flex items-center gap-1.5 text-xs font-medium ${daysLeft <= 10 ? "text-destructive" : "text-muted-foreground"}`}><Clock3 className="h-3.5 w-3.5" /> {daysLeft === 0 ? "Deadline passed" : `${daysLeft} days left to apply`}</p></div><Button size="sm" asChild><a href={job.apply_url} target="_blank" rel="noreferrer">View & apply <ExternalLink className="h-3.5 w-3.5" /></a></Button></div></article>;
+  return <article className="group border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-[0_12px_35px_-24px_hsl(var(--foreground)/0.45)] sm:p-6"><div className="flex items-start justify-between gap-4"><div className="flex items-start gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-primary"><Landmark className="h-5 w-5" /></span><div><div className="mb-2 flex flex-wrap items-center gap-2"><Badge variant={job.level === "Central" ? "default" : "secondary"}>{job.level}</Badge>{job.is_featured && <Badge variant="outline">Featured</Badge>}</div><h3 className="font-display text-lg font-bold leading-snug tracking-[-0.02em]">{job.title}</h3><p className="mt-1 text-sm text-muted-foreground">{job.organization}</p></div></div><span className="hidden rounded-md bg-accent/60 px-2 py-1 text-[11px] font-semibold text-accent-foreground sm:block">{job.source_name} verified</span></div><div className="mt-5 grid grid-cols-2 gap-3 border-y border-border py-4 text-xs sm:grid-cols-4"><Detail icon={<MapPin />} label="Location" value={job.location} /><Detail icon={<GraduationCap />} label="Qualification" value={job.qualification} /><Detail icon={<UsersRound />} label="Vacancies" value={job.vacancies.toLocaleString("en-IN")} /><Detail icon={<CalendarDays />} label="Last date" value={new Date(`${job.last_date}T12:00:00`).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })} /></div><div className="flex flex-col gap-4 pt-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs text-muted-foreground">Pay scale</p><p className="mt-1 text-sm font-semibold">{job.salary}</p><p className={`mt-2 flex items-center gap-1.5 text-xs font-medium ${daysLeft <= 10 ? "text-destructive" : "text-muted-foreground"}`}><Clock3 className="h-3.5 w-3.5" /> {daysLeft === 0 ? "Deadline passed" : `${daysLeft} days left to apply`}</p></div><div className="flex gap-2"><SaveJobButton job={job} /><Button size="sm" asChild><a href={job.apply_url} target="_blank" rel="noreferrer">View & apply <ExternalLink className="h-3.5 w-3.5" /></a></Button></div></div></article>;
+}
+
+function SaveJobButton({ job }: { job: Job }) {
+  const navigate = useNavigate();
+  const [saved, setSaved] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const save = async () => {
+    setBusy(true);
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) { await navigate({ to: "/auth" }); setBusy(false); return; }
+    const { error } = await supabase.from("job_applications").upsert({ user_id: userData.user.id, job_id: job.id, status: "Saved" }, { onConflict: "user_id,job_id" });
+    if (!error) setSaved(true);
+    setBusy(false);
+  };
+  return <Button size="sm" variant={saved ? "secondary" : "outline"} onClick={save} disabled={busy || saved}>{saved ? "Saved" : "Save job"}</Button>;
 }
 
 function Detail({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
