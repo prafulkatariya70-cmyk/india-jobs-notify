@@ -13,6 +13,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedApplicationsRouteImport } from './routes/_authenticated/applications'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as JobsIdRouteImport } from './routes/jobs.$id'
 import { Route as ApiPublicSyncJobsRouteImport } from './routes/api/public/sync-jobs'
 
 const IndexRoute = IndexRouteImport.update({
@@ -35,6 +37,16 @@ const AuthenticatedApplicationsRoute =
     path: '/applications',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const JobsIdRoute = JobsIdRouteImport.update({
+  id: '/jobs/$id',
+  path: '/jobs/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicSyncJobsRoute = ApiPublicSyncJobsRouteImport.update({
   id: '/api/public/sync-jobs',
   path: '/api/public/sync-jobs',
@@ -45,12 +57,16 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/applications': typeof AuthenticatedApplicationsRoute
+  '/profile': typeof AuthenticatedProfileRoute
+  '/jobs/$id': typeof JobsIdRoute
   '/api/public/sync-jobs': typeof ApiPublicSyncJobsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/applications': typeof AuthenticatedApplicationsRoute
+  '/profile': typeof AuthenticatedProfileRoute
+  '/jobs/$id': typeof JobsIdRoute
   '/api/public/sync-jobs': typeof ApiPublicSyncJobsRoute
 }
 export interface FileRoutesById {
@@ -59,19 +75,35 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/applications': typeof AuthenticatedApplicationsRoute
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/jobs/$id': typeof JobsIdRoute
   '/api/public/sync-jobs': typeof ApiPublicSyncJobsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/applications' | '/api/public/sync-jobs'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/applications'
+    | '/profile'
+    | '/jobs/$id'
+    | '/api/public/sync-jobs'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/applications' | '/api/public/sync-jobs'
+  to:
+    | '/'
+    | '/auth'
+    | '/applications'
+    | '/profile'
+    | '/jobs/$id'
+    | '/api/public/sync-jobs'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/applications'
+    | '/_authenticated/profile'
+    | '/jobs/$id'
     | '/api/public/sync-jobs'
   fileRoutesById: FileRoutesById
 }
@@ -79,6 +111,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  JobsIdRoute: typeof JobsIdRoute
   ApiPublicSyncJobsRoute: typeof ApiPublicSyncJobsRoute
 }
 
@@ -112,6 +145,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedApplicationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/jobs/$id': {
+      id: '/jobs/$id'
+      path: '/jobs/$id'
+      fullPath: '/jobs/$id'
+      preLoaderRoute: typeof JobsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/sync-jobs': {
       id: '/api/public/sync-jobs'
       path: '/api/public/sync-jobs'
@@ -124,10 +171,12 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedApplicationsRoute: typeof AuthenticatedApplicationsRoute
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedApplicationsRoute: AuthenticatedApplicationsRoute,
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -137,6 +186,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  JobsIdRoute: JobsIdRoute,
   ApiPublicSyncJobsRoute: ApiPublicSyncJobsRoute,
 }
 export const routeTree = rootRouteImport
