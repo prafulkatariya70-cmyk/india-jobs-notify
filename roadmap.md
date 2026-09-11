@@ -1,0 +1,4 @@
+- [ ] Add private candidate qualification details
+- [ ] Add personalized recommendations and job detail pages
+- [ ] Keep active job listings limited to open deadlines
+- [ ] Make daily sync update source health and expire closed jobs
