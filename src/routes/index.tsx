@@ -28,13 +28,15 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { getRecommendedJobs, recommendationReason } from "@/lib/job-matching";
 
 type Job = Tables<"govt_jobs">;
 
 export const Route = createFileRoute("/")({
   loader: async () => {
+    const today = new Date().toISOString().slice(0, 10);
     const [{ data: jobs }, { data: sources }] = await Promise.all([
-      supabase.from("govt_jobs").select("*").eq("is_active", true).order("is_featured", { ascending: false }).order("last_date", { ascending: true }),
+      supabase.from("govt_jobs").select("*").eq("is_active", true).gte("last_date", today).order("is_featured", { ascending: false }).order("last_date", { ascending: true }),
       supabase.from("job_sources").select("*").order("scope", { ascending: true }),
     ]);
     return { jobs: jobs ?? [], sources: sources ?? [] };
@@ -61,9 +63,16 @@ function HomePage() {
   const [showFilters, setShowFilters] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [recommendations, setRecommendations] = useState<Job[]>([]);
 
   useEffect(() => {
-    void supabase.auth.getUser().then(({ data }) => setUserEmail(data.user?.email ?? null));
+    void (async () => {
+      const { data } = await supabase.auth.getUser();
+      setUserEmail(data.user?.email ?? null);
+      if (!data.user) return;
+      const { data: profile } = await supabase.from("profiles").select("*").eq("user_id", data.user.id).maybeSingle();
+      if (profile) setRecommendations(getRecommendedJobs(jobs, profile).slice(0, 3));
+    })();
   }, []);
 
   const filteredJobs = useMemo(() => {
@@ -107,7 +116,7 @@ function HomePage() {
             <a className="transition-colors hover:text-foreground" href="#how-it-works">How it works</a>
           </div>
           <div className="hidden items-center gap-3 sm:flex">
-            {userEmail ? <Button variant="outline" size="sm" className="gap-2" asChild><Link to="/applications"><UserRound className="h-4 w-4" /> My applications</Link></Button> : <Button variant="outline" size="sm" className="gap-2" asChild><Link to="/auth"><UserRound className="h-4 w-4" /> Sign in</Link></Button>}
+            {userEmail ? <><Button variant="outline" size="sm" className="gap-2" asChild><Link to="/applications"><UserRound className="h-4 w-4" /> My applications</Link></Button><Button variant="ghost" size="sm" asChild><Link to="/profile">My details</Link></Button></> : <Button variant="outline" size="sm" className="gap-2" asChild><Link to="/auth"><UserRound className="h-4 w-4" /> Sign in</Link></Button>}
             <Button size="sm" asChild><a href="#jobs">Find a job <ArrowUpRight className="h-4 w-4" /></a></Button>
           </div>
           <Button variant="ghost" size="icon" className="sm:hidden" onClick={() => setMobileNav((open) => !open)} aria-label="Open menu">
@@ -147,6 +156,8 @@ function HomePage() {
         </div>
       </section>
 
+      {userEmail && <section className="border-b border-border bg-secondary/30"><div className="mx-auto max-w-[1240px] px-5 py-12 lg:px-8"><div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><p className="text-sm font-semibold text-primary">MADE FOR YOUR SEARCH</p><h2 className="mt-2 font-display text-3xl font-bold tracking-[-0.03em]">Recommended for you</h2><p className="mt-2 text-sm text-muted-foreground">Open roles matched to the details in your candidate profile.</p></div><Button variant="outline" size="sm" asChild><Link to="/profile">Update my details</Link></Button></div>{recommendations.length > 0 ? <div className="mt-7 grid gap-4 lg:grid-cols-3">{recommendations.map((job) => <RecommendationCard key={job.id} job={job} />)}</div> : <div className="mt-7 border border-dashed border-border bg-background p-6"><p className="font-semibold">Complete your candidate details to unlock recommendations.</p><p className="mt-1 text-sm text-muted-foreground">Add your education, skills, preferred states and categories.</p><Button className="mt-4" size="sm" asChild><Link to="/profile">Add details</Link></Button></div>}</div></section>}
+
       <section className="border-b border-border bg-background"><div className="mx-auto grid max-w-[1240px] divide-y border-x border-border sm:grid-cols-3 sm:divide-x sm:divide-y-0"><Stat icon={<BriefcaseBusiness />} label="Active opportunities" value={jobs.length.toString()} /><Stat icon={<UsersRound />} label="Vacancies across India" value={`${Math.round(totalVacancies / 1000)}K+`} /><Stat icon={<ShieldCheck />} label="Verified source portals" value={sources.length.toString()} /></div></section>
 
       <section id="jobs" className="mx-auto max-w-[1240px] scroll-mt-10 px-5 py-14 lg:px-8 lg:py-20">
@@ -177,7 +188,11 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
 
 function JobCard({ job }: { job: Job }) {
   const daysLeft = Math.max(0, Math.ceil((new Date(`${job.last_date}T23:59:59`).getTime() - Date.now()) / 86400000));
-  return <article className="group border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-[0_12px_35px_-24px_hsl(var(--foreground)/0.45)] sm:p-6"><div className="flex items-start justify-between gap-4"><div className="flex items-start gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-primary"><Landmark className="h-5 w-5" /></span><div><div className="mb-2 flex flex-wrap items-center gap-2"><Badge variant={job.level === "Central" ? "default" : "secondary"}>{job.level}</Badge>{job.is_featured && <Badge variant="outline">Featured</Badge>}</div><h3 className="font-display text-lg font-bold leading-snug tracking-[-0.02em]">{job.title}</h3><p className="mt-1 text-sm text-muted-foreground">{job.organization}</p></div></div><span className="hidden rounded-md bg-accent/60 px-2 py-1 text-[11px] font-semibold text-accent-foreground sm:block">{job.source_name} verified</span></div><div className="mt-5 grid grid-cols-2 gap-3 border-y border-border py-4 text-xs sm:grid-cols-4"><Detail icon={<MapPin />} label="Location" value={job.location} /><Detail icon={<GraduationCap />} label="Qualification" value={job.qualification} /><Detail icon={<UsersRound />} label="Vacancies" value={job.vacancies.toLocaleString("en-IN")} /><Detail icon={<CalendarDays />} label="Last date" value={new Date(`${job.last_date}T12:00:00`).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })} /></div><div className="flex flex-col gap-4 pt-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs text-muted-foreground">Pay scale</p><p className="mt-1 text-sm font-semibold">{job.salary}</p><p className={`mt-2 flex items-center gap-1.5 text-xs font-medium ${daysLeft <= 10 ? "text-destructive" : "text-muted-foreground"}`}><Clock3 className="h-3.5 w-3.5" /> {daysLeft === 0 ? "Deadline passed" : `${daysLeft} days left to apply`}</p></div><div className="flex gap-2"><SaveJobButton job={job} /><Button size="sm" asChild><a href={job.apply_url} target="_blank" rel="noreferrer">View & apply <ExternalLink className="h-3.5 w-3.5" /></a></Button></div></div></article>;
+  return <article className="group border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-[0_12px_35px_-24px_hsl(var(--foreground)/0.45)] sm:p-6"><div className="flex items-start justify-between gap-4"><div className="flex items-start gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-primary"><Landmark className="h-5 w-5" /></span><div><div className="mb-2 flex flex-wrap items-center gap-2"><Badge variant={job.level === "Central" ? "default" : "secondary"}>{job.level}</Badge>{job.is_featured && <Badge variant="outline">Featured</Badge>}</div><h3 className="font-display text-lg font-bold leading-snug tracking-[-0.02em]"><Link to="/jobs/$id" params={{ id: job.id }} className="hover:text-primary">{job.title}</Link></h3><p className="mt-1 text-sm text-muted-foreground">{job.organization}</p></div></div><span className="hidden rounded-md bg-accent/60 px-2 py-1 text-[11px] font-semibold text-accent-foreground sm:block">{job.source_name} verified</span></div><div className="mt-5 grid grid-cols-2 gap-3 border-y border-border py-4 text-xs sm:grid-cols-4"><Detail icon={<MapPin />} label="Location" value={job.location} /><Detail icon={<GraduationCap />} label="Qualification" value={job.qualification} /><Detail icon={<UsersRound />} label="Vacancies" value={job.vacancies.toLocaleString("en-IN")} /><Detail icon={<CalendarDays />} label="Last date" value={new Date(`${job.last_date}T12:00:00`).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })} /></div><div className="flex flex-col gap-4 pt-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs text-muted-foreground">Pay scale</p><p className="mt-1 text-sm font-semibold">{job.salary}</p><p className={`mt-2 flex items-center gap-1.5 text-xs font-medium ${daysLeft <= 10 ? "text-destructive" : "text-muted-foreground"}`}><Clock3 className="h-3.5 w-3.5" /> {daysLeft === 0 ? "Deadline passed" : `${daysLeft} days left to apply`}</p></div><div className="flex gap-2"><SaveJobButton job={job} /><Button variant="outline" size="sm" asChild><Link to="/jobs/$id" params={{ id: job.id }}>Details</Link></Button><Button size="sm" asChild><a href={job.apply_url} target="_blank" rel="noreferrer">Apply <ExternalLink className="h-3.5 w-3.5" /></a></Button></div></div></article>;
+}
+
+function RecommendationCard({ job }: { job: Job }) {
+  return <article className="border border-border bg-card p-5"><div className="flex items-center justify-between gap-3"><Badge variant={job.level === "Central" ? "default" : "secondary"}>{job.level}</Badge><span className="text-xs text-muted-foreground">{job.source_name}</span></div><h3 className="mt-4 font-display text-lg font-bold"><Link to="/jobs/$id" params={{ id: job.id }} className="hover:text-primary">{job.title}</Link></h3><p className="mt-1 text-sm text-muted-foreground">{job.organization}</p><p className="mt-4 text-xs font-medium text-accent-foreground">{job.category} · {job.location}</p><p className="mt-2 text-xs text-muted-foreground">{new Date(`${job.last_date}T12:00:00`).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })} deadline</p><Button className="mt-5 w-full" variant="outline" size="sm" asChild><Link to="/jobs/$id" params={{ id: job.id }}>Review match <ArrowUpRight className="h-3.5 w-3.5" /></Link></Button></article>;
 }
 
 function SaveJobButton({ job }: { job: Job }) {

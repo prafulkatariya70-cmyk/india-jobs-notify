@@ -12,6 +12,7 @@ export const Route = createFileRoute("/api/public/sync-jobs")({
         if (authError) return authError;
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        await supabaseAdmin.from("govt_jobs").update({ is_active: false }).lt("last_date", new Date().toISOString().slice(0, 10)).eq("is_active", true);
         const { data: sources, error: sourceError } = await supabaseAdmin
           .from("job_sources")
           .select("id, name, website_url")
