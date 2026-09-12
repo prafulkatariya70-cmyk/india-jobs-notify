@@ -28,7 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
-import { getRecommendedJobs, recommendationReason } from "@/lib/job-matching";
+import { getRecommendedJobs } from "@/lib/job-matching";
 
 type Job = Tables<"govt_jobs">;
 
