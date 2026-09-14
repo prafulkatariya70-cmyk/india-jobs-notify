@@ -46,11 +46,14 @@ function extractNotices(html: string, source: Source): Notice[] {
   const anchorPattern = /<a\b[^>]*href\s*=\s*["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
   let match: RegExpExecArray | null;
   while ((match = anchorPattern.exec(html)) !== null && notices.length < 40) {
-    const title = decodeHtml(match[2]);
+    const href = match[1];
+    const rawTitle = match[2];
+    if (!href || rawTitle === undefined) continue;
+    const title = decodeHtml(rawTitle);
     if (title.length < 15 || title.length > 220 || navigationText.test(title) || !relevantNotice.test(title)) continue;
     let url: string;
     try {
-      url = new URL(match[1], source.website_url).toString();
+      url = new URL(href, source.website_url).toString();
     } catch {
       continue;
     }
