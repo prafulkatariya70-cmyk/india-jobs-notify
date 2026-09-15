@@ -201,47 +201,8 @@ export type Database = {
           },
         ]
       }
-      notifications: {
-        Row: {
-          created_at: string
-          id: string
-          is_read: boolean
-          job_id: string
-          message: string
-          title: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          is_read?: boolean
-          job_id: string
-          message: string
-          title: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_read?: boolean
-          job_id?: string
-          message?: string
-          title?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "notifications_job_id_fkey"
-            columns: ["job_id"]
-            isOneToOne: false
-            referencedRelation: "govt_jobs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       profiles: {
         Row: {
-          alerts_enabled: boolean
           avatar_url: string | null
           created_at: string
           display_name: string | null
@@ -257,7 +218,6 @@ export type Database = {
           username: string | null
         }
         Insert: {
-          alerts_enabled?: boolean
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
@@ -273,7 +233,6 @@ export type Database = {
           username?: string | null
         }
         Update: {
-          alerts_enabled?: boolean
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null

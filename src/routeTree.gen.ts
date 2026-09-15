@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AuthenticatedAlertsRouteImport } from './routes/_authenticated/alerts'
 import { Route as AuthenticatedApplicationsRouteImport } from './routes/_authenticated/applications'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as JobsIdRouteImport } from './routes/jobs.$id'
@@ -31,11 +30,6 @@ const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
   getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedAlertsRoute = AuthenticatedAlertsRouteImport.update({
-  id: '/alerts',
-  path: '/alerts',
-  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedApplicationsRoute =
   AuthenticatedApplicationsRouteImport.update({
@@ -62,7 +56,6 @@ const ApiPublicSyncJobsRoute = ApiPublicSyncJobsRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/alerts': typeof AuthenticatedAlertsRoute
   '/applications': typeof AuthenticatedApplicationsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/jobs/$id': typeof JobsIdRoute
@@ -71,7 +64,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/alerts': typeof AuthenticatedAlertsRoute
   '/applications': typeof AuthenticatedApplicationsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/jobs/$id': typeof JobsIdRoute
@@ -82,7 +74,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
-  '/_authenticated/alerts': typeof AuthenticatedAlertsRoute
   '/_authenticated/applications': typeof AuthenticatedApplicationsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/jobs/$id': typeof JobsIdRoute
@@ -93,7 +84,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
-    | '/alerts'
     | '/applications'
     | '/profile'
     | '/jobs/$id'
@@ -102,7 +92,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
-    | '/alerts'
     | '/applications'
     | '/profile'
     | '/jobs/$id'
@@ -112,7 +101,6 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
-    | '/_authenticated/alerts'
     | '/_authenticated/applications'
     | '/_authenticated/profile'
     | '/jobs/$id'
@@ -150,13 +138,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/alerts': {
-      id: '/_authenticated/alerts'
-      path: '/alerts'
-      fullPath: '/alerts'
-      preLoaderRoute: typeof AuthenticatedAlertsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/applications': {
       id: '/_authenticated/applications'
       path: '/applications'
@@ -189,13 +170,11 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAlertsRoute: typeof AuthenticatedAlertsRoute
   AuthenticatedApplicationsRoute: typeof AuthenticatedApplicationsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAlertsRoute: AuthenticatedAlertsRoute,
   AuthenticatedApplicationsRoute: AuthenticatedApplicationsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
 }
