@@ -2,3 +2,4 @@
 - [x] Add personalized recommendations and job detail pages
 - [x] Keep active job listings limited to open deadlines
 - [x] Make daily sync update source health and expire closed jobs
+- [ ] Import verified new job listings automatically from supported official sources
