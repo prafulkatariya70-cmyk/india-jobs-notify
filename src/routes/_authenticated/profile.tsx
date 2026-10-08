@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchProfile, updateProfile } from "@/lib/gov-api";
 
 const educationOptions = ["10th pass", "12th pass", "Diploma", "Graduate", "Postgraduate", "Any qualification"];
 const splitValues = (value: string) => value.split(",").map((item) => item.trim()).filter(Boolean);
@@ -42,9 +43,14 @@ function ProfilePage() {
       const { data } = await supabase.auth.getUser();
       if (!data.user) { await navigate({ to: "/auth" }); return; }
       setUserId(data.user.id);
-      const { data: profile } = await supabase.from("profiles").select("*").eq("user_id", data.user.id).maybeSingle();
-      if (profile) {
-        setDisplayName(profile.display_name ?? ""); setEducation(profile.education_level ?? "Graduate"); setField(profile.field_of_study ?? ""); setExperience(String(profile.experience_years)); setSkills(profile.skills.join(", ")); setStates(profile.preferred_states.join(", ")); setCategories(profile.preferred_categories.join(", "));
+      try {
+        const profile = await fetchProfile();
+        setDisplayName(profile.full_name ?? "");
+        setEducation(profile.education_level ?? "Graduate");
+        setField([profile.degree, profile.branch].filter(Boolean).join(" · "));
+        setExperience(String(profile.experience_years ?? 0));
+      } catch {
+        // A new candidate can start with the empty profile state.
       }
       setBusy(false);
     })();
@@ -54,8 +60,18 @@ function ProfilePage() {
     event.preventDefault();
     if (!userId) return;
     setBusy(true); setError(""); setSaved(false);
-    const { error: saveError } = await supabase.from("profiles").upsert({ user_id: userId, display_name: displayName.trim() || null, education_level: education, field_of_study: field.trim() || null, experience_years: Math.max(0, Math.min(60, Number(experience) || 0)), skills: splitValues(skills), preferred_states: splitValues(states), preferred_categories: splitValues(categories) }, { onConflict: "user_id" });
-    if (saveError) setError(saveError.message); else setSaved(true);
+    try {
+      await updateProfile({
+        full_name: displayName.trim() || null,
+        education_level: education,
+        degree: field.trim() || null,
+        branch: null,
+        experience_years: Math.max(0, Math.min(60, Number(experience) || 0)),
+      });
+      setSaved(true);
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : "Unable to save your details.");
+    }
     setBusy(false);
   };
 
