@@ -43,9 +43,9 @@ export const Route = createFileRoute("/")({
   },
   head: () => ({
     meta: [
-      { title: "SarkariSetu — Government Jobs in India" },
+      { title: "Rozgaar — Government Jobs in India" },
       { name: "description", content: "Find verified central and state government jobs in India, with deadlines, eligibility and official application links." },
-      { property: "og:title", content: "SarkariSetu — Government Jobs in India" },
+      { property: "og:title", content: "Rozgaar — Government Jobs in India" },
       { property: "og:description", content: "A clear, verified directory of central and state government vacancies across India." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -104,11 +104,11 @@ function HomePage() {
     <main className="min-h-screen bg-background text-foreground">
       <nav className="border-b border-border bg-background/95 backdrop-blur">
         <div className="mx-auto flex h-[72px] max-w-[1240px] items-center justify-between px-5 lg:px-8">
-          <a href="#top" className="flex items-center gap-3" aria-label="SarkariSetu home">
+          <a href="#top" className="flex items-center gap-3" aria-label="Rozgaar home">
             <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
               <Landmark className="h-5 w-5" />
             </span>
-            <span className="font-display text-[21px] font-bold tracking-[-0.02em]">SarkariSetu</span>
+            <span className="font-display text-[21px] font-bold tracking-[-0.02em]">Rozgaar</span>
           </a>
           <div className="hidden items-center gap-8 text-sm font-medium text-muted-foreground md:flex">
             <a className="text-foreground" href="#jobs">Browse jobs</a>
@@ -147,7 +147,7 @@ function HomePage() {
           <div className="relative hidden lg:block">
             <div className="absolute -inset-6 rounded-[28px] border border-primary/10 bg-background/40" />
             <div className="relative rounded-2xl border border-border bg-card p-6 shadow-[0_18px_50px_-24px_hsl(var(--foreground)/0.28)]">
-              <div className="flex items-start justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.13em] text-muted-foreground">Today on SarkariSetu</p><p className="mt-2 font-display text-3xl font-bold">{totalVacancies.toLocaleString("en-IN")}+</p><p className="mt-1 text-sm text-muted-foreground">open opportunities listed</p></div><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-accent-foreground"><BriefcaseBusiness className="h-5 w-5" /></span></div>
+              <div className="flex items-start justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.13em] text-muted-foreground">Today on Rozgaar</p><p className="mt-2 font-display text-3xl font-bold">{totalVacancies.toLocaleString("en-IN")}+</p><p className="mt-1 text-sm text-muted-foreground">open opportunities listed</p></div><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-accent-foreground"><BriefcaseBusiness className="h-5 w-5" /></span></div>
               <div className="my-6 border-t border-border" />
               <div className="space-y-4"><MiniSource label="Central government" value={`${centralCount} active listings`} tone="primary" /><MiniSource label="State government" value={`${stateCount} active listings`} tone="accent" /><MiniSource label="Sources monitored" value={`${sources.length} official portals`} tone="secondary" /></div>
               <div className="mt-6 flex items-center gap-2 rounded-lg bg-secondary px-3 py-2.5 text-xs text-secondary-foreground"><span className="h-2 w-2 rounded-full bg-accent-foreground" /> Last checked moments ago</div>
@@ -169,11 +169,11 @@ function HomePage() {
         <div className="mt-10 flex justify-center"><Button variant="outline" onClick={clearFilters}>View all current openings <ArrowUpRight className="h-4 w-4" /></Button></div>
       </section>
 
-      <section id="sources" className="border-y border-border bg-secondary/30"><div className="mx-auto max-w-[1240px] px-5 py-14 lg:px-8 lg:py-20"><div className="max-w-2xl"><p className="text-sm font-semibold text-primary">BUILT ON TRUST</p><h2 className="mt-2 font-display text-3xl font-bold tracking-[-0.03em] sm:text-4xl">We watch the official portals, so you don’t have to.</h2><p className="mt-4 leading-7 text-muted-foreground">Every listing points back to the recruiting body that published it. SarkariSetu keeps the important details in one place and makes the final step clear.</p></div><div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{sources.map((source) => <a key={source.id} href={source.website_url} target="_blank" rel="noreferrer" className="group flex items-center justify-between border border-border bg-background p-4 transition-colors hover:border-primary/40 hover:bg-card"><div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-xs font-bold text-secondary-foreground">{source.short_name}</span><div><p className="text-sm font-semibold">{source.name}</p><p className="mt-1 text-xs text-muted-foreground">{source.scope}{source.state ? ` · ${source.state}` : ""}</p></div></div><ExternalLink className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary" /></a>)}</div></div></section>
+      <section id="sources" className="border-y border-border bg-secondary/30"><div className="mx-auto max-w-[1240px] px-5 py-14 lg:px-8 lg:py-20"><div className="max-w-2xl"><p className="text-sm font-semibold text-primary">BUILT ON TRUST</p><h2 className="mt-2 font-display text-3xl font-bold tracking-[-0.03em] sm:text-4xl">We watch the official portals, so you don’t have to.</h2><p className="mt-4 leading-7 text-muted-foreground">Every listing points back to the recruiting body that published it. Rozgaar keeps the important details in one place and makes the final step clear.</p></div><div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{sources.map((source) => <a key={source.id} href={source.website_url} target="_blank" rel="noreferrer" className="group flex items-center justify-between border border-border bg-background p-4 transition-colors hover:border-primary/40 hover:bg-card"><div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-xs font-bold text-secondary-foreground">{source.short_name}</span><div><p className="text-sm font-semibold">{source.name}</p><p className="mt-1 text-xs text-muted-foreground">{source.scope}{source.state ? ` · ${source.state}` : ""}</p></div></div><ExternalLink className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary" /></a>)}</div></div></section>
 
       <section id="how-it-works" className="mx-auto max-w-[1240px] px-5 py-14 lg:px-8 lg:py-20"><div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center"><div><p className="text-sm font-semibold text-primary">A CLEARER WAY TO APPLY</p><h2 className="mt-2 max-w-md font-display text-3xl font-bold tracking-[-0.03em] sm:text-4xl">Less noise. More confidence.</h2><p className="mt-4 max-w-md leading-7 text-muted-foreground">From discovery to application, every part of the experience is designed for one thing: helping you take the next right step.</p></div><div className="grid gap-3 sm:grid-cols-3"><Step number="01" icon={<Search />} title="Discover" text="Search opportunities that match your skills and location." /><Step number="02" icon={<GraduationCap />} title="Understand" text="See eligibility, vacancies, salary and the closing date." /><Step number="03" icon={<ArrowUpRight />} title="Apply" text="Continue to the official portal with confidence." /></div></div></section>
 
-      <footer className="border-t border-border bg-primary text-primary-foreground"><div className="mx-auto flex max-w-[1240px] flex-col gap-6 px-5 py-8 sm:flex-row sm:items-center sm:justify-between lg:px-8"><div><div className="flex items-center gap-2 font-display text-lg font-bold"><Landmark className="h-5 w-5" /> SarkariSetu</div><p className="mt-1 text-xs text-primary-foreground/70">Making public opportunities easier to find.</p></div><p className="text-xs text-primary-foreground/70">Always verify details on the official notification before applying.</p></div></footer>
+      <footer className="border-t border-border bg-primary text-primary-foreground"><div className="mx-auto flex max-w-[1240px] flex-col gap-6 px-5 py-8 sm:flex-row sm:items-center sm:justify-between lg:px-8"><div><div className="flex items-center gap-2 font-display text-lg font-bold"><Landmark className="h-5 w-5" /> Rozgaar</div><p className="mt-1 text-xs text-primary-foreground/70">Making public opportunities easier to find.</p></div><p className="text-xs text-primary-foreground/70">Always verify details on the official notification before applying.</p></div></footer>
     </main>
   );
 }
