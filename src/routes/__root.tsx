@@ -78,10 +78,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "SarkariSetu — Government Jobs in India" },
+      { title: "Rozgaar — Government Jobs in India" },
       { name: "description", content: "Verified central and state government job listings across India." },
-      { name: "author", content: "SarkariSetu" },
-      { property: "og:title", content: "SarkariSetu — Government Jobs in India" },
+      { name: "author", content: "Rozgaar" },
+      { property: "og:title", content: "Rozgaar — Government Jobs in India" },
       { property: "og:description", content: "Verified central and state government job listings across India." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
