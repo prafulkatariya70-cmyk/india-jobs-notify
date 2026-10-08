@@ -82,6 +82,8 @@ export type IngestionSource = {
   latest_run_error: string | null;
 };
 
+export type CategorySummary = { opportunity_type: string; count: number };
+
 export type IngestionStatus = {
   sources: IngestionSource[];
   latest_run_at: string | null;
@@ -182,5 +184,6 @@ export const updateApplication = (id: number, payload: Record<string, unknown>) 
 export const deleteApplication = (id: number) =>
   apiFetch<void>("/applications/" + id, { method: "DELETE" });
 export const fetchIngestionStatus = () => apiFetch<IngestionStatus>("/ingestion/status");
+export const fetchCategorySummary = () => apiFetch<CategorySummary[]>("/categories-summary");
 
 export { getClientId };
