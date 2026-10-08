@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowUpRight,
   Bell,
@@ -70,11 +70,15 @@ function toUiJob(job: GovJob): Job {
 
 export const Route = createFileRoute("/")({
   loader: async () => {
-    const [{ items, total }, ingestion] = await Promise.all([
-      fetchJobs({ page: 1, limit: 20 }),
-      fetchIngestionStatus(),
-    ]);
-    return { jobs: items.map(toUiJob), total, sources: ingestion.sources };
+    try {
+      const [{ items, total }, ingestion] = await Promise.all([
+        fetchJobs({ page: 1, limit: 20 }),
+        fetchIngestionStatus(),
+      ]);
+      return { jobs: items.map(toUiJob), total, sources: ingestion.sources };
+    } catch {
+      return { jobs: [], total: 0, sources: [] };
+    }
   },
   head: () => ({
     meta: [
@@ -127,6 +131,7 @@ function HomePage() {
           const result = await fetchJobs({
             search: query,
             opportunityType: category === "all" ? undefined : category.replaceAll(" ", "_").toUpperCase(),
+            eligibleState: state === "all" ? undefined : state,
             page: 1,
             limit: 20,
           });
@@ -209,7 +214,7 @@ function HomePage() {
               <div className="flex items-start justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.13em] text-muted-foreground">Today on Rozgaar</p><p className="mt-2 font-display text-3xl font-bold">{totalVacancies.toLocaleString("en-IN")}+</p><p className="mt-1 text-sm text-muted-foreground">open opportunities listed</p></div><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-accent-foreground"><BriefcaseBusiness className="h-5 w-5" /></span></div>
               <div className="my-6 border-t border-border" />
               <div className="space-y-4"><MiniSource label="Central government" value={`${centralCount} active listings`} tone="primary" /><MiniSource label="State government" value={`${stateCount} active listings`} tone="accent" /><MiniSource label="Sources monitored" value={`${sources.length} official portals`} tone="secondary" /></div>
-              <div className="mt-6 flex items-center gap-2 rounded-lg bg-secondary px-3 py-2.5 text-xs text-secondary-foreground"><span className="h-2 w-2 rounded-full bg-accent-foreground" /> Last checked moments ago</div>
+              <div className="mt-6 flex items-center gap-2 rounded-lg bg-secondary px-3 py-2.5 text-xs text-secondary-foreground"><span className="h-2 w-2 rounded-full bg-accent-foreground" /> Auto-checked every 30 minutes</div>
             </div>
           </div>
         </div>
@@ -228,7 +233,7 @@ function HomePage() {
         <div className="mt-10 flex justify-center"><div className="flex flex-col items-center gap-2"><Button variant="outline" onClick={clearFilters}>Reset search <ArrowUpRight className="h-4 w-4" /></Button><span className="text-xs text-muted-foreground">{total.toLocaleString("en-IN")} live/upcoming opportunities</span></div></div>
       </section>
 
-      <section id="sources" className="border-y border-border bg-secondary/30"><div className="mx-auto max-w-[1240px] px-5 py-14 lg:px-8 lg:py-20"><div className="max-w-2xl"><p className="text-sm font-semibold text-primary">BUILT ON TRUST</p><h2 className="mt-2 font-display text-3xl font-bold tracking-[-0.03em] sm:text-4xl">We watch the official portals, so you don’t have to.</h2><p className="mt-4 leading-7 text-muted-foreground">Every listing points back to the recruiting body that published it. Rozgaar keeps the important details in one place and makes the final step clear.</p></div><div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{sources.map((source) => <a key={source.id} href={source.website_url} target="_blank" rel="noreferrer" className="group flex items-center justify-between border border-border bg-background p-4 transition-colors hover:border-primary/40 hover:bg-card"><div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-xs font-bold text-secondary-foreground">{source.short_name}</span><div><p className="text-sm font-semibold">{source.name}</p><p className="mt-1 text-xs text-muted-foreground">{source.scope}{source.state ? ` · ${source.state}` : ""}</p></div></div><ExternalLink className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary" /></a>)}</div></div></section>
+      <section id="sources" className="border-y border-border bg-secondary/30"><div className="mx-auto max-w-[1240px] px-5 py-14 lg:px-8 lg:py-20"><div className="max-w-2xl"><p className="text-sm font-semibold text-primary">BUILT ON TRUST</p><h2 className="mt-2 font-display text-3xl font-bold tracking-[-0.03em] sm:text-4xl">We watch the official portals, so you don’t have to.</h2><p className="mt-4 leading-7 text-muted-foreground">Every listing points back to the recruiting body that published it. Rozgaar keeps the important details in one place and makes the final step clear.</p></div><div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{sources.map((source) => <a key={source.id} href={source.base_url} target="_blank" rel="noreferrer" className="group flex items-center justify-between border border-border bg-background p-4 transition-colors hover:border-primary/40 hover:bg-card"><div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-xs font-bold text-secondary-foreground">{source.name.slice(0, 3)}</span><div><p className="text-sm font-semibold">{source.name}</p><p className="mt-1 text-xs text-muted-foreground">{source.health_status === "healthy" ? "Healthy source" : "Source needs attention"}</p></div></div><ExternalLink className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary" /></a>)}</div></div></section>
 
       <section id="how-it-works" className="mx-auto max-w-[1240px] px-5 py-14 lg:px-8 lg:py-20"><div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center"><div><p className="text-sm font-semibold text-primary">A CLEARER WAY TO APPLY</p><h2 className="mt-2 max-w-md font-display text-3xl font-bold tracking-[-0.03em] sm:text-4xl">Less noise. More confidence.</h2><p className="mt-4 max-w-md leading-7 text-muted-foreground">From discovery to application, every part of the experience is designed for one thing: helping you take the next right step.</p></div><div className="grid gap-3 sm:grid-cols-3"><Step number="01" icon={<Search />} title="Discover" text="Search opportunities that match your skills and location." /><Step number="02" icon={<GraduationCap />} title="Understand" text="See eligibility, vacancies, salary and the closing date." /><Step number="03" icon={<ArrowUpRight />} title="Apply" text="Continue to the official portal with confidence." /></div></div></section>
 
