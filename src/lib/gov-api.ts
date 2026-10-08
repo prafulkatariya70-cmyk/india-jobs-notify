@@ -140,6 +140,7 @@ export function fetchJobs(params: {
   search?: string;
   sourceName?: string;
   opportunityType?: string;
+  eligibleState?: string;
   page?: number;
   limit?: number;
 }) {
@@ -147,6 +148,7 @@ export function fetchJobs(params: {
   if (params.search?.trim()) query.set("search", params.search.trim());
   if (params.sourceName) query.set("source_name", params.sourceName);
   if (params.opportunityType) query.set("opportunity_type", params.opportunityType);
+  if (params.eligibleState) query.set("eligible_state", params.eligibleState);
   query.set("page", String(params.page ?? 1));
   query.set("limit", String(params.limit ?? 20));
   return apiFetch<JobListResponse>("/jobs?" + query.toString());
