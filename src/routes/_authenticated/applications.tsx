@@ -10,7 +10,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchApplications, fetchProfile, updateApplication, deleteApplication, type Application as GovApplication, type GovJob } from "@/lib/gov-api";
 
 type Application = GovApplication;
-type Job = GovJob;
 type TrackerItem = Application;
 const statuses = ["Saved", "Applied", "Shortlisted", "Rejected", "Selected"] as const;
 
@@ -115,7 +114,7 @@ function ApplicationCard({ item, saving, onUpdate, onRemove, onNotesChange }: { 
           </h2>
           {job && (
             <p className="mt-2 text-sm text-muted-foreground">
-              {job.location} · Last date {new Date(`${job.application_end ?? job.application_start ?? job.created_at.slice(0, 10)}T12:00:00`).toLocaleDateString("en-IN", {
+              {job.eligibility?.eligible_states ?? "All India"} · Last date {new Date(`${job.application_end ?? job.application_start ?? job.created_at.slice(0, 10)}T12:00:00`).toLocaleDateString("en-IN", {
                 day: "2-digit",
                 month: "short",
                 year: "numeric",
