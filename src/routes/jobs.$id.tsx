@@ -16,9 +16,9 @@ export const Route = createFileRoute("/jobs/$id")({
   },
   head: () => ({
     meta: [
-      { title: "Government job details — SarkariSetu" },
+      { title: "Government job details — Rozgaar" },
       { name: "description", content: "Review eligibility, vacancies, salary, deadline and official application details for this government job." },
-      { property: "og:title", content: "Government job details — SarkariSetu" },
+      { property: "og:title", content: "Government job details — Rozgaar" },
       { property: "og:description", content: "Review verified government job details and continue to the official application portal." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -44,7 +44,7 @@ function JobDetailsPage() {
   };
 
   return <main className="min-h-screen bg-background text-foreground">
-    <nav className="border-b border-border bg-background"><div className="mx-auto flex h-[72px] max-w-[1040px] items-center justify-between px-5 lg:px-8"><Link to="/" className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground"><Landmark className="h-5 w-5" /></span><span className="font-display text-[21px] font-bold">SarkariSetu</span></Link><Button variant="ghost" size="sm" asChild><Link to="/"><ArrowLeft className="h-4 w-4" /> Back to jobs</Link></Button></div></nav>
+    <nav className="border-b border-border bg-background"><div className="mx-auto flex h-[72px] max-w-[1040px] items-center justify-between px-5 lg:px-8"><Link to="/" className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground"><Landmark className="h-5 w-5" /></span><span className="font-display text-[21px] font-bold">Rozgaar</span></Link><Button variant="ghost" size="sm" asChild><Link to="/"><ArrowLeft className="h-4 w-4" /> Back to jobs</Link></Button></div></nav>
     <div className="mx-auto max-w-[1040px] px-5 py-12 lg:px-8 lg:py-16">
       <div className="flex flex-wrap items-center gap-2"><Badge>{job.level}</Badge><Badge variant="secondary">{job.source_name} verified</Badge></div>
       <h1 className="mt-5 max-w-3xl font-display text-4xl font-bold leading-tight tracking-[-0.04em] sm:text-5xl">{job.title}</h1>
