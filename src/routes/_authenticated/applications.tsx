@@ -7,11 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
-import type { Tables } from "@/integrations/supabase/types";
+import { fetchApplications, fetchProfile, updateApplication, deleteApplication, type Application as GovApplication, type GovJob } from "@/lib/gov-api";
 
-type Application = Tables<"job_applications">;
-type Job = Tables<"govt_jobs">;
-type TrackerItem = Application & { job: Job | undefined };
+type Application = GovApplication;
+type TrackerItem = Application;
 const statuses = ["Saved", "Applied", "Shortlisted", "Rejected", "Selected"] as const;
 
 export const Route = createFileRoute("/_authenticated/applications")({
@@ -40,14 +39,17 @@ function ApplicationsPage() {
     const { data: userData } = await supabase.auth.getUser();
     const user = userData.user;
     if (!user) { await navigate({ to: "/auth" }); return; }
-    const [{ data: applications }, { data: jobs }, { data: profile }] = await Promise.all([
-      supabase.from("job_applications").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }),
-      supabase.from("govt_jobs").select("*").eq("is_active", true),
-      supabase.from("profiles").select("display_name").eq("user_id", user.id).maybeSingle(),
-    ]);
-    const jobMap = new Map((jobs ?? []).map((job) => [job.id, job]));
-    setItems((applications ?? []).map((application) => ({ ...application, job: jobMap.get(application.job_id) })));
-    setProfileName(profile?.display_name || user.email?.split("@")[0] || "there");
+    try {
+      const [applications, profile] = await Promise.all([
+        fetchApplications(),
+        fetchProfile().catch(() => null),
+      ]);
+      setItems(applications);
+      setProfileName(profile?.full_name || user.email?.split("@")[0] || "there");
+    } catch {
+      setItems([]);
+      setProfileName(user.email?.split("@")[0] || "there");
+    }
     setLoading(false);
   };
 
@@ -60,16 +62,22 @@ function ApplicationsPage() {
 
   const updateItem = async (item: TrackerItem, changes: Partial<Application>) => {
     setSavingId(item.id);
-    const { data, error } = await supabase.from("job_applications").update(changes).eq("id", item.id).select().single();
-    if (!error && data) setItems((current) => current.map((entry) => entry.id === item.id ? { ...entry, ...data } : entry));
-    setSavingId(null);
+    try {
+      const data = await updateApplication(item.id, changes as Record<string, unknown>);
+      setItems((current) => current.map((entry) => entry.id === item.id ? { ...entry, ...data } : entry));
+    } finally {
+      setSavingId(null);
+    }
   };
 
   const removeItem = async (item: TrackerItem) => {
     setSavingId(item.id);
-    const { error } = await supabase.from("job_applications").delete().eq("id", item.id);
-    if (!error) setItems((current) => current.filter((entry) => entry.id !== item.id));
-    setSavingId(null);
+    try {
+      await deleteApplication(item.id);
+      setItems((current) => current.filter((entry) => entry.id !== item.id));
+    } finally {
+      setSavingId(null);
+    }
   };
 
   const signOut = async () => {
@@ -98,7 +106,7 @@ function ApplicationCard({ item, saving, onUpdate, onRemove, onNotesChange }: { 
               {job?.source_name ?? "Government job"}
             </span>
             <span className="text-xs text-muted-foreground">
-              {job?.organization ?? "This listing is no longer active"}
+              {job?.organization_name ?? "This listing is no longer active"}
             </span>
           </div>
           <h2 className="mt-3 font-display text-xl font-bold">
@@ -106,7 +114,7 @@ function ApplicationCard({ item, saving, onUpdate, onRemove, onNotesChange }: { 
           </h2>
           {job && (
             <p className="mt-2 text-sm text-muted-foreground">
-              {job.location} · Last date {new Date(`${job.last_date}T12:00:00`).toLocaleDateString("en-IN", {
+              {job.eligibility?.eligible_states ?? "All India"} · Last date {new Date(`${job.application_end ?? job.application_start ?? job.created_at.slice(0, 10)}T12:00:00`).toLocaleDateString("en-IN", {
                 day: "2-digit",
                 month: "short",
                 year: "numeric",
@@ -129,7 +137,7 @@ function ApplicationCard({ item, saving, onUpdate, onRemove, onNotesChange }: { 
           </Select>
           {job && (
             <Button variant="outline" size="icon" asChild>
-              <a href={job.apply_url} target="_blank" rel="noreferrer" aria-label="Open official application">
+              <a href={job.official_url} target="_blank" rel="noreferrer" aria-label="Open official application">
                 <ExternalLink className="h-4 w-4" />
               </a>
             </Button>
