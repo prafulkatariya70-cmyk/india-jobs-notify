@@ -1,3 +1,4 @@
+import { supabase } from "@/integrations/supabase/client";
 export type JobEligibility = {
   minimum_age: number | null;
   maximum_age: number | null;
@@ -114,6 +115,16 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
   headers.set("Accept", "application/json");
   headers.set("X-Client-ID", getClientId());
+
+  if (typeof window !== "undefined") {
+    try {
+      const { data } = await supabase.auth.getSession();
+      const accessToken = data.session?.access_token;
+      if (accessToken) headers.set("Authorization", "Bearer " + accessToken);
+    } catch {
+      // Public endpoints remain usable when an auth session is unavailable.
+    }
+  }
 
   const response = await fetch(getBaseUrl() + path, {
     ...init,
