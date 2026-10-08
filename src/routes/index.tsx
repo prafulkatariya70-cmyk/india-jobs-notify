@@ -104,6 +104,8 @@ function HomePage() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [jobs, setJobs] = useState<Job[]>(initialJobs);
   const [total, setTotal] = useState(initialTotal);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(initialJobs.length < initialTotal);
   const [recommendations, setRecommendations] = useState<Job[]>([]);
   const [loadingJobs, setLoadingJobs] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -137,9 +139,10 @@ function HomePage() {
           });
           let next = result.items.map(toUiJob);
           if (level !== "all") next = next.filter((job) => job.level === level);
-          if (state !== "all") next = next.filter((job) => job.state.toLowerCase().includes(state.toLowerCase()));
           setJobs(next);
           setTotal(result.total);
+          setPage(1);
+          setHasMore(result.items.length < result.total);
         } catch (error) {
           setApiError(error instanceof Error ? error.message : "Unable to load jobs.");
         } finally {
@@ -149,6 +152,31 @@ function HomePage() {
     }, query.trim() ? 300 : 0);
     return () => window.clearTimeout(timer);
   }, [query, level, state, category]);
+
+  const loadMore = async () => {
+    if (loadingJobs || !hasMore) return;
+    setLoadingJobs(true);
+    setApiError(null);
+    try {
+      const nextPage = page + 1;
+      const result = await fetchJobs({
+        search: query,
+        opportunityType: category === "all" ? undefined : category.replaceAll(" ", "_").toUpperCase(),
+        eligibleState: state === "all" ? undefined : state,
+        page: nextPage,
+        limit: 20,
+      });
+      let next = result.items.map(toUiJob);
+      if (level !== "all") next = next.filter((job) => job.level === level);
+      setJobs((current) => [...current, ...next]);
+      setPage(nextPage);
+      setHasMore(nextPage * 20 < result.total);
+    } catch (error) {
+      setApiError(error instanceof Error ? error.message : "Unable to load more jobs.");
+    } finally {
+      setLoadingJobs(false);
+    }
+  };
 
   const filteredJobs = jobs;
   const centralCount = jobs.filter((job) => job.level === "Central").length;
@@ -231,7 +259,7 @@ function HomePage() {
         {showFilters && <div className="mt-3 flex flex-col gap-3 rounded-xl border border-border bg-secondary/35 p-4 sm:flex-row sm:items-center"><span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground"><Filter className="h-3.5 w-3.5" /> Refine by category</span><Select value={category} onValueChange={setCategory}><SelectTrigger className="w-full bg-background sm:w-[220px]"><SelectValue placeholder="All categories" /></SelectTrigger><SelectContent><SelectItem value="all">All categories</SelectItem>{categories.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent></Select>{activeFilterCount > 0 && <Button variant="ghost" size="sm" onClick={clearFilters}>Clear all</Button>}</div>}
         <div className="mt-8 grid gap-4 lg:grid-cols-2">{loadingJobs ? <div className="lg:col-span-2 flex items-center justify-center border border-dashed border-border py-16 text-sm text-muted-foreground">Refreshing live openings…</div> : filteredJobs.map((job) => <JobCard key={job.id} job={job} />)}</div>
          {!loadingJobs && filteredJobs.length === 0 && <div className="border border-dashed border-border py-16 text-center"><Search className="mx-auto h-8 w-8 text-muted-foreground" /><h3 className="mt-4 font-display text-xl font-semibold">No jobs match your search</h3><p className="mt-2 text-sm text-muted-foreground">Try a different keyword or clear your filters.</p><Button variant="outline" className="mt-5" onClick={clearFilters}>Clear filters</Button></div>}
-        <div className="mt-10 flex justify-center"><div className="flex flex-col items-center gap-2"><Button variant="outline" onClick={clearFilters}>Reset search <ArrowUpRight className="h-4 w-4" /></Button><span className="text-xs text-muted-foreground">{total.toLocaleString("en-IN")} live/upcoming opportunities</span></div></div>
+        <div className="mt-10 flex flex-col items-center gap-3"><div className="flex gap-2">{hasMore && <Button variant="outline" onClick={() => void loadMore()} disabled={loadingJobs}>{loadingJobs ? "Loading…" : "Load more jobs"} <ArrowUpRight className="h-4 w-4" /></Button>}<Button variant="ghost" onClick={clearFilters}>Reset search</Button></div><span className="text-xs text-muted-foreground">Showing {jobs.length.toLocaleString("en-IN")} of {total.toLocaleString("en-IN")} live/upcoming opportunities</span></div>
       </section>
 
       <section id="sources" className="border-y border-border bg-secondary/30"><div className="mx-auto max-w-[1240px] px-5 py-14 lg:px-8 lg:py-20"><div className="max-w-2xl"><p className="text-sm font-semibold text-primary">BUILT ON TRUST</p><h2 className="mt-2 font-display text-3xl font-bold tracking-[-0.03em] sm:text-4xl">We watch the official portals, so you don’t have to.</h2><p className="mt-4 leading-7 text-muted-foreground">Every listing points back to the recruiting body that published it. Rozgaar keeps the important details in one place and makes the final step clear.</p></div><div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{sources.map((source) => <a key={source.id} href={source.base_url} target="_blank" rel="noreferrer" className="group flex items-center justify-between border border-border bg-background p-4 transition-colors hover:border-primary/40 hover:bg-card"><div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-xs font-bold text-secondary-foreground">{source.name.slice(0, 3)}</span><div><p className="text-sm font-semibold">{source.name}</p><p className="mt-1 text-xs text-muted-foreground">{source.health_status === "healthy" ? "Healthy source" : "Source needs attention"}</p></div></div><ExternalLink className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary" /></a>)}</div></div></section>
