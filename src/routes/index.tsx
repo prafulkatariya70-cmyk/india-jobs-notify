@@ -27,7 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchIngestionStatus, fetchJobs, fetchRecommendedJobs, createApplication, type GovJob } from "@/lib/gov-api";
+import { fetchCategorySummary, fetchIngestionStatus, fetchJobs, fetchRecommendedJobs, createApplication, type GovJob } from "@/lib/gov-api";
 
 type Job = GovJob & {
   level: "Central" | "State";
@@ -77,7 +77,7 @@ export const Route = createFileRoute("/")({
       ]);
       return { jobs: items.map(toUiJob), total, sources: ingestion.sources };
     } catch {
-      return { jobs: [], total: 0, sources: [] };
+      return { jobs: [], total: 0, sources: [], categories: [] };
     }
   },
   head: () => ({
@@ -94,7 +94,7 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
-  const { jobs: initialJobs, total: initialTotal, sources } = Route.useLoaderData();
+  const { jobs: initialJobs, total: initialTotal, sources, categories: initialCategories } = Route.useLoaderData();
   const [query, setQuery] = useState("");
   const [level, setLevel] = useState("all");
   const [state, setState] = useState("all");
@@ -106,7 +106,8 @@ function HomePage() {
   const [total, setTotal] = useState(initialTotal);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(initialJobs.length < initialTotal);
-  const [recommendations, setRecommendations] = useState<Job[]>([]);
+  const [categories] = useState(initialCategories);
+  const [recommendations] = useState<Job[]>([]);
   const [loadingJobs, setLoadingJobs] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
@@ -182,7 +183,7 @@ function HomePage() {
   const centralCount = jobs.filter((job) => job.level === "Central").length;
   const stateCount = jobs.filter((job) => job.level === "State").length;
   const states = ["Karnataka", "Maharashtra", "Gujarat", "Tamil Nadu", "Uttar Pradesh", "West Bengal"];
-  const categories = Array.from(new Set(jobs.map((job) => job.category))).sort();
+  const categoryOptions = categories.map((value) => value.replaceAll("_", " ").toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase()));
   const activeFilterCount = [level !== "all", state !== "all", category !== "all"].filter(Boolean).length;
 
   const clearFilters = () => {
@@ -256,7 +257,7 @@ function HomePage() {
         <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="text-sm font-semibold text-primary">THE OPPORTUNITY BOARD</p><h2 className="mt-2 font-display text-3xl font-bold tracking-[-0.03em] sm:text-4xl">Latest government jobs</h2><p className="mt-3 text-sm text-muted-foreground">Fresh openings, clear deadlines, direct official application links.</p></div><Button variant="outline" className="w-fit" onClick={() => setShowFilters((open) => !open)}><Filter className="h-4 w-4" /> Filters {activeFilterCount > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] text-primary-foreground">{activeFilterCount}</span>}<ChevronDown className={`h-4 w-4 transition-transform ${showFilters ? "rotate-180" : ""}`} /></Button></div>
         {apiError && <div className="mt-6 border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">{apiError}</div>}
         <div className="mt-8 flex flex-col gap-3 lg:flex-row"><div className="relative flex-1"><Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by title, organization or keyword" className="pl-10" /></div><Select value={level} onValueChange={setLevel}><SelectTrigger className="w-full lg:w-[180px]"><SelectValue placeholder="All job types" /></SelectTrigger><SelectContent><SelectItem value="all">All job types</SelectItem><SelectItem value="Central">Central jobs</SelectItem><SelectItem value="State">State jobs</SelectItem></SelectContent></Select><Select value={state} onValueChange={setState}><SelectTrigger className="w-full lg:w-[180px]"><SelectValue placeholder="All locations" /></SelectTrigger><SelectContent><SelectItem value="all">All locations</SelectItem>{states.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent></Select></div>
-        {showFilters && <div className="mt-3 flex flex-col gap-3 rounded-xl border border-border bg-secondary/35 p-4 sm:flex-row sm:items-center"><span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground"><Filter className="h-3.5 w-3.5" /> Refine by category</span><Select value={category} onValueChange={setCategory}><SelectTrigger className="w-full bg-background sm:w-[220px]"><SelectValue placeholder="All categories" /></SelectTrigger><SelectContent><SelectItem value="all">All categories</SelectItem>{categories.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent></Select>{activeFilterCount > 0 && <Button variant="ghost" size="sm" onClick={clearFilters}>Clear all</Button>}</div>}
+        {showFilters && <div className="mt-3 flex flex-col gap-3 rounded-xl border border-border bg-secondary/35 p-4 sm:flex-row sm:items-center"><span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground"><Filter className="h-3.5 w-3.5" /> Refine by category</span><Select value={category} onValueChange={setCategory}><SelectTrigger className="w-full bg-background sm:w-[220px]"><SelectValue placeholder="All categories" /></SelectTrigger><SelectContent><SelectItem value="all">All categories</SelectItem>{categoryOptions.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent></Select>{activeFilterCount > 0 && <Button variant="ghost" size="sm" onClick={clearFilters}>Clear all</Button>}</div>}
         <div className="mt-8 grid gap-4 lg:grid-cols-2">{loadingJobs ? <div className="lg:col-span-2 flex items-center justify-center border border-dashed border-border py-16 text-sm text-muted-foreground">Refreshing live openings…</div> : filteredJobs.map((job) => <JobCard key={job.id} job={job} />)}</div>
          {!loadingJobs && filteredJobs.length === 0 && <div className="border border-dashed border-border py-16 text-center"><Search className="mx-auto h-8 w-8 text-muted-foreground" /><h3 className="mt-4 font-display text-xl font-semibold">No jobs match your search</h3><p className="mt-2 text-sm text-muted-foreground">Try a different keyword or clear your filters.</p><Button variant="outline" className="mt-5" onClick={clearFilters}>Clear filters</Button></div>}
         <div className="mt-10 flex flex-col items-center gap-3"><div className="flex gap-2">{hasMore && <Button variant="outline" onClick={() => void loadMore()} disabled={loadingJobs}>{loadingJobs ? "Loading…" : "Load more jobs"} <ArrowUpRight className="h-4 w-4" /></Button>}<Button variant="ghost" onClick={clearFilters}>Reset search</Button></div><span className="text-xs text-muted-foreground">Showing {jobs.length.toLocaleString("en-IN")} of {total.toLocaleString("en-IN")} live/upcoming opportunities</span></div>
