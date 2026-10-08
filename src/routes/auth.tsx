@@ -10,9 +10,9 @@ import { lovable } from "@/integrations/lovable";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — SarkariSetu" },
-      { name: "description", content: "Sign in to save government jobs and manage your SarkariSetu application tracker." },
-      { property: "og:title", content: "Sign in — SarkariSetu" },
+      { title: "Sign in — Rozgaar" },
+      { name: "description", content: "Sign in to save government jobs and manage your Rozgaar application tracker." },
+      { property: "og:title", content: "Sign in — Rozgaar" },
       { property: "og:description", content: "Save government jobs and keep your application progress in one place." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -35,7 +35,7 @@ function AuthPage() {
   const saveProfile = async (userId: string, name?: string | null, userEmail?: string | null) => {
     await supabase.from("profiles").upsert({
       user_id: userId,
-      display_name: name?.trim() || userEmail?.split("@")[0] || "SarkariSetu user",
+      display_name: name?.trim() || userEmail?.split("@")[0] || "Rozgaar user",
     }, { onConflict: "user_id" });
   };
 
@@ -86,7 +86,7 @@ function AuthPage() {
         </Link>
         <div className="mt-10 grid overflow-hidden border border-border bg-card shadow-[0_24px_70px_-42px_hsl(var(--foreground)/0.4)] lg:grid-cols-[0.9fr_1.1fr]">
           <section className="bg-primary p-8 text-primary-foreground sm:p-12">
-            <div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-foreground/15"><Landmark className="h-5 w-5" /></span><span className="font-display text-xl font-bold">SarkariSetu</span></div>
+            <div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-foreground/15"><Landmark className="h-5 w-5" /></span><span className="font-display text-xl font-bold">Rozgaar</span></div>
             <p className="mt-16 text-sm font-semibold uppercase tracking-[0.14em] text-primary-foreground/65">Your application desk</p>
             <h1 className="mt-4 max-w-md font-display text-4xl font-bold leading-tight tracking-[-0.04em] sm:text-5xl">Keep every opportunity within reach.</h1>
             <p className="mt-5 max-w-md leading-7 text-primary-foreground/75">Save jobs, mark your progress, and return to the official application link when you are ready.</p>
@@ -107,7 +107,7 @@ function AuthPage() {
                 {message && <p className="text-sm text-accent-foreground">{message}</p>}
                 <Button type="submit" className="h-11 w-full" disabled={busy}>{busy && <Loader2 className="h-4 w-4 animate-spin" />}{mode === "signin" ? "Sign in" : "Create account"}</Button>
               </form>
-              <p className="mt-6 text-center text-sm text-muted-foreground">{mode === "signin" ? "New to SarkariSetu?" : "Already have an account?"}{" "}<button type="button" className="font-semibold text-primary hover:underline" onClick={() => { setMode(mode === "signin" ? "signup" : "signin"); setError(""); setMessage(""); }}>{mode === "signin" ? "Create an account" : "Sign in"}</button></p>
+              <p className="mt-6 text-center text-sm text-muted-foreground">{mode === "signin" ? "New to Rozgaar?" : "Already have an account?"}{" "}<button type="button" className="font-semibold text-primary hover:underline" onClick={() => { setMode(mode === "signin" ? "signup" : "signin"); setError(""); setMessage(""); }}>{mode === "signin" ? "Create an account" : "Sign in"}</button></p>
             </div>
           </section>
         </div>
