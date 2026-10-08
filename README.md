@@ -22,3 +22,12 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+
+## Production API
+
+Rozgaar reads live jobs, profiles, recommendations, and application tracking from the Gov-AI FastAPI backend.
+
+Set `VITE_GOV_API_URL` to the deployed Gov-AI API base ending in `/api` in the frontend deployment environment. For local development the client defaults to `http://localhost:8000/api`.
+
+The frontend forwards the signed-in Supabase session to Gov-AI. The backend can validate Supabase JWTs using the project's JWKS endpoint; keep `SUPABASE_URL` and `COMPATIBILITY_ALLOW_ANONYMOUS` configured on the backend and never expose server secrets in `VITE_*` variables.
