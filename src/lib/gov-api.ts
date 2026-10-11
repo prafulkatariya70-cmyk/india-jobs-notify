@@ -98,18 +98,28 @@ function getBaseUrl() {
   throw new Error("Rozgaar API is not configured. Set VITE_GOV_API_URL to the Gov-AI API URL.");
 }
 
+let fallbackClientId: string | undefined;
+
+function createClientId() {
+  return typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+    ? crypto.randomUUID()
+    : String(Date.now()) + "-" + Math.random().toString(36).slice(2) + "-" + Math.random().toString(36).slice(2);
+}
+
 function getClientId() {
   const key = "rozgaar_client_id";
   try {
     const existing = window.localStorage.getItem(key);
     if (existing && existing.length >= 16) return existing;
-    const id = typeof crypto.randomUUID === "function"
-      ? crypto.randomUUID()
-      : String(Date.now()) + "-" + Math.random().toString(36).slice(2) + "-" + Math.random().toString(36).slice(2);
+    const id = createClientId();
     window.localStorage.setItem(key, id);
     return id;
   } catch {
-    return "rozgaar-anonymous-client";
+    // Never use a shared hard-coded anonymous ID: it could merge separate
+    // visitors into one backend profile when storage is blocked.
+    if (typeof window === "undefined") return "rozgaar-ssr-" + createClientId();
+    fallbackClientId ??= createClientId();
+    return fallbackClientId;
   }
 }
 
