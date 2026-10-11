@@ -71,11 +71,12 @@ function toUiJob(job: GovJob): Job {
 export const Route = createFileRoute("/")({
   loader: async () => {
     try {
-      const [{ items, total }, ingestion] = await Promise.all([
+      const [{ items, total }, ingestion, categories] = await Promise.all([
         fetchJobs({ page: 1, limit: 20 }),
         fetchIngestionStatus(),
+        fetchCategorySummary(),
       ]);
-      return { jobs: items.map(toUiJob), total, sources: ingestion.sources };
+      return { jobs: items.map(toUiJob), total, sources: ingestion.sources, categories: categories.map((item) => item.opportunity_type) };
     } catch {
       return { jobs: [], total: 0, sources: [], categories: [] };
     }
@@ -107,7 +108,7 @@ function HomePage() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(initialJobs.length < initialTotal);
   const [categories] = useState(initialCategories);
-  const [recommendations] = useState<Job[]>([]);
+  const [recommendations, setRecommendations] = useState<Job[]>([]);
   const [loadingJobs, setLoadingJobs] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
