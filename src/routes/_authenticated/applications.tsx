@@ -31,7 +31,7 @@ function ApplicationsPage() {
   const navigate = useNavigate();
   const [items, setItems] = useState<TrackerItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [savingId, setSavingId] = useState<string | null>(null);
+  const [savingId, setSavingId] = useState<number | null>(null);
   const [profileName, setProfileName] = useState("there");
 
   const loadApplications = async () => {
